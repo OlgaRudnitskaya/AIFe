@@ -348,3 +348,13 @@ canvas {
     opacity: 0.5;
     cursor: not-allowed;
 }
+/* Добавляем в конец файла */
+.speed-slider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Скрываем легенду в развернутом режиме */
+.container.expanded .legend-panel {
+    display: none;
+}
