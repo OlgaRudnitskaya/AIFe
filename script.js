@@ -25,8 +25,7 @@ class AnimationController {
         this.createFrameButtons();
         this.setupControls();
         this.generateDemoContent();
-        // Show cover by default
-        this.showCover();
+        this.showCover(); // Show cover by default
     }
     
     createFrameButtons() {
@@ -265,20 +264,18 @@ class AnimationController {
     }
 }
 
-// Initialize all animations to show covers by default
-function initializeAnimations() {
+// Initialize animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Create animations
     for (let i = 1; i <= 5; i++) {
-        const anim = new AnimationController(
+        animations.push(new AnimationController(
             `panel${i}`,
             `canvas${i}`,
             `scrubber${i}`
-        );
-        animations.push(anim);
+        ));
     }
-}
 
-// Global controls
-function setupGlobalControls() {
+    // Setup global controls
     const globalPlayBtn = document.getElementById('global-play');
     const globalPauseBtn = document.getElementById('global-pause');
     const globalCoverBtn = document.getElementById('global-cover');
@@ -343,12 +340,8 @@ function setupGlobalControls() {
             });
         }
     });
-}
 
-// Modal functionality
-let expandedAnimation = null;
-
-function setupModal() {
+    // Setup modal
     const expandButtons = document.querySelectorAll('.expand-btn');
     const modal = document.getElementById('modal');
     const modalCanvas = document.getElementById('modal-canvas');
@@ -369,6 +362,8 @@ function setupModal() {
         modalScrubber.appendChild(btn);
     }
 
+    let expandedAnimation = null;
+
     expandButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const panelNumber = parseInt(e.target.getAttribute('data-panel'));
@@ -387,91 +382,87 @@ function setupModal() {
             expandedAnimation = null;
         }
     });
-}
 
-function openModal(panelNumber) {
-    expandedAnimation = animations[panelNumber - 1];
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalCanvas = document.getElementById('modal-canvas');
-    const modalPlayBtn = document.querySelector('.modal-play-btn');
-    const modalPauseBtn = document.querySelector('.modal-pause-btn');
-    const modalCoverBtn = document.querySelector('.modal-cover-btn');
-    const modalSpeedSlider = document.querySelector('.modal-speed-slider');
-    const modalSpeedValue = document.querySelector('.modal-speed-value');
-    const modalScrubber = document.getElementById('modal-scrubber');
-    
-    modalTitle.textContent = `Animation ${panelNumber}`;
-    
-    // Set up modal controls
-    modalPlayBtn.onclick = () => expandedAnimation.play();
-    modalPauseBtn.onclick = () => expandedAnimation.pause();
-    modalCoverBtn.onclick = () => expandedAnimation.showCover();
-    modalSpeedSlider.oninput = (e) => {
-        expandedAnimation.setSpeed(parseInt(e.target.value));
-    };
-    
-    // Sync current values
-    modalSpeedSlider.value = expandedAnimation.speed;
-    const speedPerSec = 1000 / expandedAnimation.speed;
-    modalSpeedValue.textContent = speedPerSec.toFixed(1);
-    
-    // Update modal scrubber
-    updateModalScrubber();
-    
-    // Start rendering
-    modal.style.display = 'block';
-    renderModal();
-}
-
-function updateModalScrubber() {
-    if (!expandedAnimation) return;
-    
-    const modalFrameBtns = document.querySelectorAll('#modal-scrubber .frame-btn');
-    modalFrameBtns.forEach((btn, index) => {
-        btn.classList.toggle('active', 
-            !expandedAnimation.isOnCover && index === expandedAnimation.currentFrame
-        );
-    });
-}
-
-function renderModal() {
-    if (!expandedAnimation || document.getElementById('modal').style.display === 'none') {
-        return;
-    }
-    
-    const modalCanvas = document.getElementById('modal-canvas');
-    const modalCtx = modalCanvas.getContext('2d');
-    
-    // Set canvas size
-    modalCanvas.width = modalCanvas.parentElement.clientWidth;
-    modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
-    
-    modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
-    
-    let imageToDraw;
-    if (expandedAnimation.isOnCover && expandedAnimation.coverImage) {
-        imageToDraw = expandedAnimation.coverImage;
-    } else if (expandedAnimation.images[expandedAnimation.currentFrame]) {
-        imageToDraw = expandedAnimation.images[expandedAnimation.currentFrame];
-    }
-    
-    if (imageToDraw) {
-        const scale = Math.min(
-            modalCanvas.width / imageToDraw.width,
-            modalCanvas.height / imageToDraw.height
-        );
-        const width = imageToDraw.width * scale;
-        const height = imageToDraw.height * scale;
-        const x = (modalCanvas.width - width) / 2;
-        const y = (modalCanvas.height - height) / 2;
+    function openModal(panelNumber) {
+        expandedAnimation = animations[panelNumber - 1];
         
-        modalCtx.drawImage(imageToDraw, x, y, width, height);
+        modalTitle.textContent = `Animation ${panelNumber}`;
+        
+        // Set up modal controls
+        const modalPlayBtn = document.querySelector('.modal-play-btn');
+        const modalPauseBtn = document.querySelector('.modal-pause-btn');
+        const modalCoverBtn = document.querySelector('.modal-cover-btn');
+        const modalSpeedSlider = document.querySelector('.modal-speed-slider');
+        const modalSpeedValue = document.querySelector('.modal-speed-value');
+        
+        modalPlayBtn.onclick = () => expandedAnimation.play();
+        modalPauseBtn.onclick = () => expandedAnimation.pause();
+        modalCoverBtn.onclick = () => expandedAnimation.showCover();
+        modalSpeedSlider.oninput = (e) => {
+            expandedAnimation.setSpeed(parseInt(e.target.value));
+        };
+        
+        // Sync current values
+        modalSpeedSlider.value = expandedAnimation.speed;
+        const speedPerSec = 1000 / expandedAnimation.speed;
+        modalSpeedValue.textContent = speedPerSec.toFixed(1);
+        
+        // Start rendering
+        modal.style.display = 'block';
+        renderModal();
     }
-    
-    // Update modal controls state
-    const modalPlayBtn = document.querySelector('.modal-play-btn');
-    const modalPauseBtn = document.querySelector('.modal-pause-btn');
-    
-    modalPlayBtn.disabled = expandedAnimation.isPlaying && !expandedAnimation.isPaused;
-    modalPauseBtn.disabled = !expandedAnimation.is
+
+    function renderModal() {
+        if (!expandedAnimation || document.getElementById('modal').style.display === 'none') {
+            return;
+        }
+        
+        const modalCanvas = document.getElementById('modal-canvas');
+        const modalCtx = modalCanvas.getContext('2d');
+        
+        // Set canvas size
+        modalCanvas.width = modalCanvas.parentElement.clientWidth;
+        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
+        
+        modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+        
+        let imageToDraw;
+        if (expandedAnimation.isOnCover && expandedAnimation.coverImage) {
+            imageToDraw = expandedAnimation.coverImage;
+        } else if (expandedAnimation.images[expandedAnimation.currentFrame]) {
+            imageToDraw = expandedAnimation.images[expandedAnimation.currentFrame];
+        }
+        
+        if (imageToDraw) {
+            const scale = Math.min(
+                modalCanvas.width / imageToDraw.width,
+                modalCanvas.height / imageToDraw.height
+            );
+            const width = imageToDraw.width * scale;
+            const height = imageToDraw.height * scale;
+            const x = (modalCanvas.width - width) / 2;
+            const y = (modalCanvas.height - height) / 2;
+            
+            modalCtx.drawImage(imageToDraw, x, y, width, height);
+        }
+        
+        // Update modal scrubber
+        const modalFrameBtns = document.querySelectorAll('#modal-scrubber .frame-btn');
+        modalFrameBtns.forEach((btn, index) => {
+            btn.classList.toggle('active', 
+                !expandedAnimation.isOnCover && index === expandedAnimation.currentFrame
+            );
+        });
+        
+        // Update modal control states
+        const modalPlayBtn = document.querySelector('.modal-play-btn');
+        const modalPauseBtn = document.querySelector('.modal-pause-btn');
+        
+        modalPlayBtn.disabled = expandedAnimation.isPlaying && !expandedAnimation.isPaused;
+        modalPauseBtn.disabled = !expandedAnimation.isPlaying || expandedAnimation.isPaused;
+        
+        requestAnimationFrame(renderModal);
+    }
+});
+
+console.log('Animation panel loaded!');
