@@ -25,6 +25,7 @@ class AnimationController {
         this.createFrameButtons();
         this.setupControls();
         this.generateDemoContent();
+        // Show cover by default
         this.showCover();
     }
     
@@ -45,7 +46,6 @@ class AnimationController {
         const pauseBtn = this.panel.querySelector('.pause-btn');
         const coverBtn = this.panel.querySelector('.cover-btn');
         const speedSlider = this.panel.querySelector('.speed-slider');
-        const speedControl = this.panel.querySelector('.speed-control');
         
         playBtn.addEventListener('click', () => this.play());
         pauseBtn.addEventListener('click', () => this.pause());
@@ -248,8 +248,7 @@ class AnimationController {
         speedControl.classList.add('disabled');
         speedSlider.disabled = true;
         frameBtns.forEach(btn => {
-            btn.style.pointerEvents = 'none';
-            btn.style.opacity = '0.6';
+            btn.disabled = true;
         });
     }
     
@@ -261,138 +260,150 @@ class AnimationController {
         speedControl.classList.remove('disabled');
         speedSlider.disabled = false;
         frameBtns.forEach(btn => {
-            btn.style.pointerEvents = 'auto';
-            btn.style.opacity = '1';
+            btn.disabled = false;
         });
     }
 }
 
-// Initialize animations
-for (let i = 1; i <= 5; i++) {
-    animations.push(new AnimationController(
-        `panel${i}`,
-        `canvas${i}`,
-        `scrubber${i}`
-    ));
+// Initialize all animations to show covers by default
+function initializeAnimations() {
+    for (let i = 1; i <= 5; i++) {
+        const anim = new AnimationController(
+            `panel${i}`,
+            `canvas${i}`,
+            `scrubber${i}`
+        );
+        animations.push(anim);
+    }
 }
 
 // Global controls
-const globalPlayBtn = document.getElementById('global-play');
-const globalPauseBtn = document.getElementById('global-pause');
-const globalCoverBtn = document.getElementById('global-cover');
-const globalSpeedSlider = document.getElementById('global-speed');
-const globalSpeedValue = document.getElementById('global-speed-value');
-const globalScrubber = document.getElementById('global-scrubber');
+function setupGlobalControls() {
+    const globalPlayBtn = document.getElementById('global-play');
+    const globalPauseBtn = document.getElementById('global-pause');
+    const globalCoverBtn = document.getElementById('global-cover');
+    const globalSpeedSlider = document.getElementById('global-speed');
+    const globalSpeedValue = document.getElementById('global-speed-value');
+    const globalScrubber = document.getElementById('global-scrubber');
 
-// Create global frame buttons
-for (let i = 0; i < 24; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'frame-btn';
-    btn.textContent = i + 1;
-    btn.addEventListener('click', () => {
-        if (!isGlobalPlaying) {
-            animations.forEach(anim => anim.goToFrame(i));
+    // Create global frame buttons
+    for (let i = 0; i < 24; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'frame-btn';
+        btn.textContent = i + 1;
+        btn.addEventListener('click', () => {
+            if (!isGlobalPlaying) {
+                animations.forEach(anim => anim.goToFrame(i));
+            }
+        });
+        globalScrubber.appendChild(btn);
+    }
+
+    // Global play with synchronization
+    globalPlayBtn.addEventListener('click', () => {
+        isGlobalPlaying = true;
+        
+        // Disable individual controls
+        animations.forEach(anim => {
+            anim.disableIndividualControls();
+            anim.setSpeed(globalSpeed);
+            anim.syncPlay();
+        });
+    });
+
+    globalPauseBtn.addEventListener('click', () => {
+        isGlobalPlaying = false;
+        animations.forEach(anim => {
+            anim.pause();
+            anim.enableIndividualControls();
+        });
+    });
+
+    globalCoverBtn.addEventListener('click', () => {
+        isGlobalPlaying = false;
+        animations.forEach(anim => {
+            anim.showCover();
+            anim.enableIndividualControls();
+        });
+        
+        // Clear global scrubber highlighting
+        const globalFrameBtns = document.querySelectorAll('#global-scrubber .frame-btn');
+        globalFrameBtns.forEach(btn => btn.classList.remove('active'));
+    });
+
+    // Global speed control
+    globalSpeedSlider.addEventListener('input', (e) => {
+        globalSpeed = parseInt(e.target.value);
+        const speedPerSec = 1000 / globalSpeed;
+        globalSpeedValue.textContent = speedPerSec.toFixed(1);
+        
+        if (isGlobalPlaying) {
+            animations.forEach(anim => {
+                anim.setSpeed(globalSpeed);
+            });
         }
     });
-    globalScrubber.appendChild(btn);
 }
-
-// Global play with synchronization
-globalPlayBtn.addEventListener('click', () => {
-    isGlobalPlaying = true;
-    
-    // Disable individual controls
-    animations.forEach(anim => {
-        anim.disableIndividualControls();
-        anim.setSpeed(globalSpeed);
-        anim.syncPlay();
-    });
-    
-    // Update global scrubber
-    const globalFrameBtns = document.querySelectorAll('#global-scrubber .frame-btn');
-    globalFrameBtns.forEach((btn, index) => {
-        btn.classList.toggle('active', index === 0);
-    });
-});
-
-globalPauseBtn.addEventListener('click', () => {
-    isGlobalPlaying = false;
-    animations.forEach(anim => {
-        anim.pause();
-        anim.enableIndividualControls();
-    });
-});
-
-globalCoverBtn.addEventListener('click', () => {
-    isGlobalPlaying = false;
-    animations.forEach(anim => {
-        anim.showCover();
-        anim.enableIndividualControls();
-    });
-});
-
-// Global speed control
-globalSpeedSlider.addEventListener('input', (e) => {
-    globalSpeed = parseInt(e.target.value);
-    const speedPerSec = 1000 / globalSpeed;
-    globalSpeedValue.textContent = speedPerSec.toFixed(1);
-    
-    if (isGlobalPlaying) {
-        animations.forEach(anim => {
-            anim.setSpeed(globalSpeed);
-        });
-    }
-});
 
 // Modal functionality
-const expandButtons = document.querySelectorAll('.expand-btn');
-const modal = document.getElementById('modal');
-const modalCanvas = document.getElementById('modal-canvas');
-const modalTitle = document.getElementById('modal-title');
-const closeModal = document.getElementById('close-modal');
-const modalControls = document.querySelector('.modal-controls');
-const modalScrubber = document.getElementById('modal-scrubber');
-
 let expandedAnimation = null;
-let modalCtx = modalCanvas.getContext('2d');
 
-// Create modal frame buttons
-for (let i = 0; i < 24; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'frame-btn';
-    btn.textContent = i + 1;
-    btn.addEventListener('click', () => {
-        if (expandedAnimation) {
-            expandedAnimation.goToFrame(i);
+function setupModal() {
+    const expandButtons = document.querySelectorAll('.expand-btn');
+    const modal = document.getElementById('modal');
+    const modalCanvas = document.getElementById('modal-canvas');
+    const modalTitle = document.getElementById('modal-title');
+    const closeModal = document.getElementById('close-modal');
+    const modalScrubber = document.getElementById('modal-scrubber');
+
+    // Create modal frame buttons
+    for (let i = 0; i < 24; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'frame-btn';
+        btn.textContent = i + 1;
+        btn.addEventListener('click', () => {
+            if (expandedAnimation) {
+                expandedAnimation.goToFrame(i);
+            }
+        });
+        modalScrubber.appendChild(btn);
+    }
+
+    expandButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const panelNumber = parseInt(e.target.getAttribute('data-panel'));
+            openModal(panelNumber);
+        });
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+        expandedAnimation = null;
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            expandedAnimation = null;
         }
     });
-    modalScrubber.appendChild(btn);
 }
-
-expandButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const panelNumber = parseInt(e.target.getAttribute('data-panel'));
-        openModal(panelNumber);
-    });
-});
-
-closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-    expandedAnimation = null;
-});
 
 function openModal(panelNumber) {
     expandedAnimation = animations[panelNumber - 1];
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalCanvas = document.getElementById('modal-canvas');
+    const modalPlayBtn = document.querySelector('.modal-play-btn');
+    const modalPauseBtn = document.querySelector('.modal-pause-btn');
+    const modalCoverBtn = document.querySelector('.modal-cover-btn');
+    const modalSpeedSlider = document.querySelector('.modal-speed-slider');
+    const modalSpeedValue = document.querySelector('.modal-speed-value');
+    const modalScrubber = document.getElementById('modal-scrubber');
     
     modalTitle.textContent = `Animation ${panelNumber}`;
     
     // Set up modal controls
-    const modalPlayBtn = modalControls.querySelector('.modal-play-btn');
-    const modalPauseBtn = modalControls.querySelector('.modal-pause-btn');
-    const modalCoverBtn = modalControls.querySelector('.modal-cover-btn');
-    const modalSpeedSlider = modalControls.querySelector('.modal-speed-slider');
-    const modalSpeedValue = modalControls.querySelector('.modal-speed-value');
-    
     modalPlayBtn.onclick = () => expandedAnimation.play();
     modalPauseBtn.onclick = () => expandedAnimation.pause();
     modalCoverBtn.onclick = () => expandedAnimation.showCover();
@@ -402,18 +413,39 @@ function openModal(panelNumber) {
     
     // Sync current values
     modalSpeedSlider.value = expandedAnimation.speed;
-    expandedAnimation.updateSpeedDisplay.call({
-        panel: { querySelector: () => modalSpeedValue },
-        speed: expandedAnimation.speed
-    });
+    const speedPerSec = 1000 / expandedAnimation.speed;
+    modalSpeedValue.textContent = speedPerSec.toFixed(1);
+    
+    // Update modal scrubber
+    updateModalScrubber();
     
     // Start rendering
     modal.style.display = 'block';
     renderModal();
 }
 
+function updateModalScrubber() {
+    if (!expandedAnimation) return;
+    
+    const modalFrameBtns = document.querySelectorAll('#modal-scrubber .frame-btn');
+    modalFrameBtns.forEach((btn, index) => {
+        btn.classList.toggle('active', 
+            !expandedAnimation.isOnCover && index === expandedAnimation.currentFrame
+        );
+    });
+}
+
 function renderModal() {
-    if (!expandedAnimation || modal.style.display === 'none') return;
+    if (!expandedAnimation || document.getElementById('modal').style.display === 'none') {
+        return;
+    }
+    
+    const modalCanvas = document.getElementById('modal-canvas');
+    const modalCtx = modalCanvas.getContext('2d');
+    
+    // Set canvas size
+    modalCanvas.width = modalCanvas.parentElement.clientWidth;
+    modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
     
     modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
     
@@ -437,43 +469,9 @@ function renderModal() {
         modalCtx.drawImage(imageToDraw, x, y, width, height);
     }
     
-    // Update modal scrubber
-    const modalFrameBtns = modalScrubber.querySelectorAll('.frame-btn');
-    modalFrameBtns.forEach((btn, index) => {
-        btn.classList.toggle('active', 
-            !expandedAnimation.isOnCover && index === expandedAnimation.currentFrame
-        );
-    });
-    
-    // Update modal control states
-    const modalPlayBtn = modalControls.querySelector('.modal-play-btn');
-    const modalPauseBtn = modalControls.querySelector('.modal-pause-btn');
+    // Update modal controls state
+    const modalPlayBtn = document.querySelector('.modal-play-btn');
+    const modalPauseBtn = document.querySelector('.modal-pause-btn');
     
     modalPlayBtn.disabled = expandedAnimation.isPlaying && !expandedAnimation.isPaused;
-    modalPauseBtn.disabled = !expandedAnimation.isPlaying || expandedAnimation.isPaused;
-    
-    requestAnimationFrame(renderModal);
-}
-
-// Window event listeners
-window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-        modal.style.display = 'none';
-        expandedAnimation = null;
-    }
-});
-
-window.addEventListener('resize', () => {
-    if (modalCanvas) {
-        modalCanvas.width = modalCanvas.parentElement.clientWidth;
-        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
-    }
-});
-
-// Initialize modal canvas size
-setTimeout(() => {
-    if (modalCanvas) {
-        modalCanvas.width = modalCanvas.parentElement.clientWidth;
-        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
-    }
-}, 
+    modalPauseBtn.disabled = !expandedAnimation.is
