@@ -1,201 +1,229 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Научные анимации</title>
+    <title>Scientific Animations</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <!-- Панель 1 -->
+        <!-- Panel 1 -->
         <div class="animation-panel" id="panel1">
             <div class="panel-header">
-                <h3>Анимация 1</h3>
-                <button class="expand-btn" data-panel="1">⛶ Развернуть</button>
+                <h3>Animation 1</h3>
+                <button class="expand-btn" data-panel="1">⛶ Expand</button>
             </div>
             <div class="animation-container">
                 <div class="canvas-container">
                     <canvas id="canvas1" width="400" height="400"></canvas>
                 </div>
                 <div class="controls">
-                    <div class="control-buttons">
-                        <button class="play-btn">▶ Пуск</button>
-                        <button class="pause-btn">⏸ Пауза</button>
-                        <button class="cover-btn">📊 Обложка</button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
-                        <span class="speed-value">2 img/sec</span>
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="play-btn">▶ Play</button>
+                            <button class="pause-btn">⏸ Pause</button>
+                            <button class="cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                            <span class="speed-value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber1">
-                    <!-- 24 кнопки будут созданы через JavaScript -->
+                    <!-- 24 buttons will be created via JavaScript -->
                 </div>
             </div>
         </div>
 
-        <!-- Панель 2 -->
+        <!-- Panel 2 -->
         <div class="animation-panel" id="panel2">
             <div class="panel-header">
-                <h3>Анимация 2</h3>
-                <button class="expand-btn" data-panel="2">⛶ Развернуть</button>
+                <h3>Animation 2</h3>
+                <button class="expand-btn" data-panel="2">⛶ Expand</button>
             </div>
             <div class="animation-container">
                 <div class="canvas-container">
                     <canvas id="canvas2" width="400" height="400"></canvas>
                 </div>
                 <div class="controls">
-                    <div class="control-buttons">
-                        <button class="play-btn">▶ Пуск</button>
-                        <button class="pause-btn">⏸ Пауза</button>
-                        <button class="cover-btn">📊 Обложка</button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
-                        <span class="speed-value">2 img/sec</span>
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="play-btn">▶ Play</button>
+                            <button class="pause-btn">⏸ Pause</button>
+                            <button class="cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                            <span class="speed-value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber2">
-                    <!-- 24 кнопки будут созданы через JavaScript -->
+                    <!-- 24 buttons will be created via JavaScript -->
                 </div>
             </div>
         </div>
 
-        <!-- Панель 3 -->
+        <!-- Panel 3 -->
         <div class="animation-panel" id="panel3">
             <div class="panel-header">
-                <h3>Анимация 3</h3>
-                <button class="expand-btn" data-panel="3">⛶ Развернуть</button>
+                <h3>Animation 3</h3>
+                <button class="expand-btn" data-panel="3">⛶ Expand</button>
             </div>
             <div class="animation-container">
                 <div class="canvas-container">
                     <canvas id="canvas3" width="400" height="400"></canvas>
                 </div>
                 <div class="controls">
-                    <div class="control-buttons">
-                        <button class="play-btn">▶ Пуск</button>
-                        <button class="pause-btn">⏸ Пауза</button>
-                        <button class="cover-btn">📊 Обложка</button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
-                        <span class="speed-value">2 img/sec</span>
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="play-btn">▶ Play</button>
+                            <button class="pause-btn">⏸ Pause</button>
+                            <button class="cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                            <span class="speed-value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber3">
-                    <!-- 24 кнопки будут созданы через JavaScript -->
+                    <!-- 24 buttons will be created via JavaScript -->
                 </div>
             </div>
         </div>
 
-        <!-- Панель 4 -->
+        <!-- Panel 4 -->
         <div class="animation-panel" id="panel4">
             <div class="panel-header">
-                <h3>Анимация 4</h3>
-                <button class="expand-btn" data-panel="4">⛶ Развернуть</button>
+                <h3>Animation 4</h3>
+                <button class="expand-btn" data-panel="4">⛶ Expand</button>
             </div>
             <div class="animation-container">
                 <div class="canvas-container">
                     <canvas id="canvas4" width="400" height="400"></canvas>
                 </div>
                 <div class="controls">
-                    <div class="control-buttons">
-                        <button class="play-btn">▶ Пуск</button>
-                        <button class="pause-btn">⏸ Пауза</button>
-                        <button class="cover-btn">📊 Обложка</button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
-                        <span class="speed-value">2 img/sec</span>
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="play-btn">▶ Play</button>
+                            <button class="pause-btn">⏸ Pause</button>
+                            <button class="cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                            <span class="speed-value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber4">
-                    <!-- 24 кнопки будут созданы через JavaScript -->
+                    <!-- 24 buttons will be created via JavaScript -->
                 </div>
             </div>
         </div>
 
-        <!-- Панель 5 -->
+        <!-- Panel 5 -->
         <div class="animation-panel" id="panel5">
             <div class="panel-header">
-                <h3>Анимация 5</h3>
-                <button class="expand-btn" data-panel="5">⛶ Развернуть</button>
+                <h3>Animation 5</h3>
+                <button class="expand-btn" data-panel="5">⛶ Expand</button>
             </div>
             <div class="animation-container">
                 <div class="canvas-container">
                     <canvas id="canvas5" width="400" height="400"></canvas>
                 </div>
                 <div class="controls">
-                    <div class="control-buttons">
-                        <button class="play-btn">▶ Пуск</button>
-                        <button class="pause-btn">⏸ Пауза</button>
-                        <button class="cover-btn">📊 Обложка</button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
-                        <span class="speed-value">2 img/sec</span>
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="play-btn">▶ Play</button>
+                            <button class="pause-btn">⏸ Pause</button>
+                            <button class="cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                            <span class="speed-value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber5">
-                    <!-- 24 кнопки будут созданы через JavaScript -->
+                    <!-- 24 buttons will be created via JavaScript -->
                 </div>
             </div>
         </div>
 
-        <!-- Панель 6 - Легенда и глобальное управление -->
+        <!-- Panel 6 - Legend and global control -->
         <div class="legend-panel" id="panel6">
             <div class="panel-header">
-                <h3>Легенда и управление</h3>
+                <h3>Legend & Control</h3>
             </div>
             <div class="legend-content">
-                <h4>Пояснения к анимациям:</h4>
+                <h4>Animations description:</h4>
                 <ul>
-                    <li><strong>Анимация 1:</strong> Описание первой анимации</li>
-                    <li><strong>Анимация 2:</strong> Описание второй анимации</li>
-                    <li><strong>Анимация 3:</strong> Описание третьей анимации</li>
-                    <li><strong>Анимация 4:</strong> Описание четвертой анимации</li>
-                    <li><strong>Анимация 5:</strong> Описание пятой анимации</li>
+                    <li><strong>Animation 1:</strong> Description of first animation</li>
+                    <li><strong>Animation 2:</strong> Description of second animation</li>
+                    <li><strong>Animation 3:</strong> Description of third animation</li>
+                    <li><strong>Animation 4:</strong> Description of fourth animation</li>
+                    <li><strong>Animation 5:</strong> Description of fifth animation</li>
                 </ul>
                 <div class="legend-info">
-                    <p>📊 <strong>Обложка</strong> - показывает средние значения</p>
-                    <p>🎬 <strong>Анимация</strong> - показывает динамику процесса</p>
+                    <p>📊 <strong>Cover</strong> - shows average values</p>
+                    <p>🎬 <strong>Animation</strong> - shows dynamic process</p>
                 </div>
             </div>
             <div class="global-controls">
-                <button id="global-play">▶ Запуск всех анимаций</button>
-                <button id="global-pause">⏸ Пауза всех</button>
-                <button id="global-cover">📊 Все на обложки</button>
-                <div class="speed-control">
-                    <label>Общая скорость:</label>
-                    <input type="range" id="global-speed" min="100" max="2000" value="500">
-                    <span id="global-speed-value">2 img/sec</span>
+                <div class="control-row">
+                    <div class="control-buttons">
+                        <button id="global-play">▶ Play All</button>
+                        <button id="global-pause">⏸ Pause All</button>
+                        <button id="global-cover">📊 All Covers</button>
+                    </div>
+                    <div class="speed-control">
+                        <label>Global Speed:</label>
+                        <input type="range" id="global-speed" min="100" max="2000" value="500">
+                        <span id="global-speed-value">2.0</span>
+                    </div>
                 </div>
                 <div class="global-scrubber" id="global-scrubber">
-                    <!-- Общие 24 кнопки -->
+                    <!-- Common 24 buttons -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно для развернутой анимации -->
+    <!-- Modal window for expanded animation -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modal-title">Анимация</h3>
-                <button id="close-modal" class="close-btn">✕ Свернуть</button>
+                <h3 id="modal-title">Animation</h3>
+                <button id="close-modal" class="close-btn">✕ Close</button>
             </div>
             <div class="modal-animation-container">
                 <div class="canvas-container">
                     <canvas id="modal-canvas"></canvas>
                 </div>
                 <div class="modal-controls">
-                    <!-- Управление будет копироваться динамически -->
+                    <div class="control-row">
+                        <div class="control-buttons">
+                            <button class="modal-play-btn">▶ Play</button>
+                            <button class="modal-pause-btn">⏸ Pause</button>
+                            <button class="modal-cover-btn">📊 Cover</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="modal-speed-slider" min="100" max="2000" value="500">
+                            <span class="modal-speed-value">2.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="frame-scrubber" id="modal-scrubber">
+                    <!-- 24 buttons for modal -->
                 </div>
             </div>
         </div>
