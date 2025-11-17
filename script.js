@@ -1,5 +1,9 @@
+// Global state
+let globalSpeed = 500;
+let isGlobalPlaying = false;
+const animations = [];
 
-// Базовый класс для управления анимацией
+// Animation controller class
 class AnimationController {
     constructor(panelId, canvasId, scrubberId) {
         this.panel = document.getElementById(panelId);
@@ -12,12 +16,11 @@ class AnimationController {
         this.currentFrame = 0;
         this.isPlaying = false;
         this.isPaused = false;
-        this.speed = 500; // мс на кадр (2 img/sec)
+        this.speed = 500;
         this.animationId = null;
         this.totalFrames = 24;
         this.isOnCover = true;
         this.lastTime = 0;
-        this.alpha = 1; // Для плавных переходов
         
         this.createFrameButtons();
         this.setupControls();
@@ -25,7 +28,6 @@ class AnimationController {
         this.showCover();
     }
     
-    // Создает кнопки для переключения кадров
     createFrameButtons() {
         this.scrubber.innerHTML = '';
         for (let i = 0; i < this.totalFrames; i++) {
@@ -38,26 +40,26 @@ class AnimationController {
         this.updateScrubber();
     }
     
-    // Настройка элементов управления
     setupControls() {
         const playBtn = this.panel.querySelector('.play-btn');
         const pauseBtn = this.panel.querySelector('.pause-btn');
         const coverBtn = this.panel.querySelector('.cover-btn');
         const speedSlider = this.panel.querySelector('.speed-slider');
-        const speedValue = this.panel.querySelector('.speed-value');
+        const speedControl = this.panel.querySelector('.speed-control');
         
         playBtn.addEventListener('click', () => this.play());
         pauseBtn.addEventListener('click', () => this.pause());
         coverBtn.addEventListener('click', () => this.showCover());
         
         speedSlider.addEventListener('input', (e) => {
-            this.setSpeed(parseInt(e.target.value));
+            if (!isGlobalPlaying) {
+                this.setSpeed(parseInt(e.target.value));
+            }
         });
         
         this.updateSpeedDisplay();
     }
     
-    // Установка скорости с обновлением отображения
     setSpeed(speedMs) {
         this.speed = speedMs;
         this.updateSpeedDisplay();
@@ -66,16 +68,14 @@ class AnimationController {
         }
     }
     
-    // Обновление отображения скорости
     updateSpeedDisplay() {
         const speedValue = this.panel.querySelector('.speed-value');
         const speedPerSec = 1000 / this.speed;
-        speedValue.textContent = `${speedPerSec.toFixed(1)} img/sec`;
+        speedValue.textContent = speedPerSec.toFixed(1);
     }
     
-    // Временный демо-контент
     generateDemoContent() {
-        // Создаем демо-обложку
+        // Demo cover
         const coverCanvas = document.createElement('canvas');
         coverCanvas.width = 400;
         coverCanvas.height = 400;
@@ -88,16 +88,16 @@ class AnimationController {
         coverCtx.font = 'bold 32px Arial';
         coverCtx.textAlign = 'center';
         coverCtx.textBaseline = 'middle';
-        coverCtx.fillText('📊 ОБЛОЖКА', coverCanvas.width / 2, coverCanvas.height / 2 - 30);
+        coverCtx.fillText('📊 COVER', coverCanvas.width / 2, coverCanvas.height / 2 - 30);
         
         coverCtx.fillStyle = '#333';
         coverCtx.font = '16px Arial';
-        coverCtx.fillText('Средние значения', coverCanvas.width / 2, coverCanvas.height / 2 + 10);
+        coverCtx.fillText('Average values', coverCanvas.width / 2, coverCanvas.height / 2 + 10);
         
         this.coverImage = new Image();
         this.coverImage.src = coverCanvas.toDataURL();
         
-        // Создаем демо-кадры анимации
+        // Demo animation frames
         for (let i = 0; i < this.totalFrames; i++) {
             const canvas = document.createElement('canvas');
             canvas.width = 400;
@@ -115,13 +115,7 @@ class AnimationController {
             ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(`Кадр ${i + 1}`, canvas.width / 2, canvas.height / 2);
-            
-            ctx.fillStyle = `hsl(${(i * 15) % 360}, 100%, 50%)`;
-            const radius = 20 + 15 * Math.sin(i * 0.3);
-            ctx.beginPath();
-            ctx.arc(80 + i * 5, 80, radius, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillText(`Frame ${i + 1}`, canvas.width / 2, canvas.height / 2);
             
             const img = new Image();
             img.src = canvas.toDataURL();
@@ -129,7 +123,6 @@ class AnimationController {
         }
     }
     
-    // Показать обложку
     showCover() {
         this.stop();
         this.isOnCover = true;
@@ -138,9 +131,9 @@ class AnimationController {
             this.ctx.drawImage(this.coverImage, 0, 0, this.canvas.width, this.canvas.height);
         }
         this.updateScrubber();
+        this.updateGlobalScrubber();
     }
     
-    // Запуск анимации
     play() {
         if (this.isPlaying && !this.isPaused) return;
         
@@ -155,7 +148,6 @@ class AnimationController {
         this.animate();
     }
     
-    // Пауза анимации
     pause() {
         if (!this.isPlaying) return;
         
@@ -168,7 +160,6 @@ class AnimationController {
         }
     }
     
-    // Полная остановка анимации
     stop() {
         this.isPlaying = false;
         this.isPaused = false;
@@ -181,41 +172,41 @@ class AnimationController {
         }
     }
     
-    // Основной цикл анимации
     animate(currentTime = performance.now()) {
         if (!this.isPlaying || this.isPaused) return;
         
         const delta = currentTime - this.lastTime;
+        const currentSpeed = isGlobalPlaying ? globalSpeed : this.speed;
         
-        if (delta >= this.speed) {
+        if (delta >= currentSpeed) {
             this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
             this.drawFrame(this.currentFrame);
             this.updateScrubber();
+            this.updateGlobalScrubber();
             this.lastTime = currentTime;
         }
         
         this.animationId = requestAnimationFrame((time) => this.animate(time));
     }
     
-    // Отрисовка текущего кадра с плавным переходом
     drawFrame(frameIndex) {
         if (this.images[frameIndex]) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.globalAlpha = 1;
             this.ctx.drawImage(this.images[frameIndex], 0, 0, this.canvas.width, this.canvas.height);
         }
     }
     
-    // Переход к конкретному кадру
     goToFrame(frameIndex) {
-        this.stop();
-        this.currentFrame = frameIndex;
-        this.isOnCover = false;
-        this.drawFrame(frameIndex);
-        this.updateScrubber();
+        if (!isGlobalPlaying) {
+            this.stop();
+            this.currentFrame = frameIndex;
+            this.isOnCover = false;
+            this.drawFrame(frameIndex);
+            this.updateScrubber();
+            this.updateGlobalScrubber();
+        }
     }
     
-    // Обновление подсветки кнопок
     updateScrubber() {
         const frameBtns = this.scrubber.querySelectorAll('.frame-btn');
         frameBtns.forEach((btn, index) => {
@@ -223,7 +214,15 @@ class AnimationController {
         });
     }
     
-    // Перезапуск анимации
+    updateGlobalScrubber() {
+        if (isGlobalPlaying && this.isPlaying) {
+            const globalFrameBtns = document.querySelectorAll('#global-scrubber .frame-btn');
+            globalFrameBtns.forEach((btn, index) => {
+                btn.classList.toggle('active', index === this.currentFrame);
+            });
+        }
+    }
+    
     restartAnimation() {
         if (this.isPlaying && !this.isPaused) {
             this.lastTime = performance.now();
@@ -234,18 +233,41 @@ class AnimationController {
         }
     }
     
-    // Синхронный запуск с начала
     syncPlay() {
         this.currentFrame = 0;
+        this.isOnCover = false;
+        this.drawFrame(0);
         this.play();
+    }
+    
+    disableIndividualControls() {
+        const speedControl = this.panel.querySelector('.speed-control');
+        const speedSlider = this.panel.querySelector('.speed-slider');
+        const frameBtns = this.scrubber.querySelectorAll('.frame-btn');
+        
+        speedControl.classList.add('disabled');
+        speedSlider.disabled = true;
+        frameBtns.forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.6';
+        });
+    }
+    
+    enableIndividualControls() {
+        const speedControl = this.panel.querySelector('.speed-control');
+        const speedSlider = this.panel.querySelector('.speed-slider');
+        const frameBtns = this.scrubber.querySelectorAll('.frame-btn');
+        
+        speedControl.classList.remove('disabled');
+        speedSlider.disabled = false;
+        frameBtns.forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
+        });
     }
 }
 
-// Глобальное управление
-let globalSpeed = 500; // Общая скорость по умолчанию
-const animations = [];
-
-// Создаем 5 анимационных панелей
+// Initialize animations
 for (let i = 1; i <= 5; i++) {
     animations.push(new AnimationController(
         `panel${i}`,
@@ -254,7 +276,7 @@ for (let i = 1; i <= 5; i++) {
     ));
 }
 
-// Глобальные элементы управления
+// Global controls
 const globalPlayBtn = document.getElementById('global-play');
 const globalPauseBtn = document.getElementById('global-pause');
 const globalCoverBtn = document.getElementById('global-cover');
@@ -262,49 +284,90 @@ const globalSpeedSlider = document.getElementById('global-speed');
 const globalSpeedValue = document.getElementById('global-speed-value');
 const globalScrubber = document.getElementById('global-scrubber');
 
-// Создаем глобальные кнопки переключения кадров
+// Create global frame buttons
 for (let i = 0; i < 24; i++) {
     const btn = document.createElement('button');
     btn.className = 'frame-btn';
     btn.textContent = i + 1;
     btn.addEventListener('click', () => {
-        animations.forEach(anim => anim.goToFrame(i));
+        if (!isGlobalPlaying) {
+            animations.forEach(anim => anim.goToFrame(i));
+        }
     });
     globalScrubber.appendChild(btn);
 }
 
-// Глобальное управление воспроизведением
+// Global play with synchronization
 globalPlayBtn.addEventListener('click', () => {
+    isGlobalPlaying = true;
+    
+    // Disable individual controls
     animations.forEach(anim => {
+        anim.disableIndividualControls();
         anim.setSpeed(globalSpeed);
         anim.syncPlay();
+    });
+    
+    // Update global scrubber
+    const globalFrameBtns = document.querySelectorAll('#global-scrubber .frame-btn');
+    globalFrameBtns.forEach((btn, index) => {
+        btn.classList.toggle('active', index === 0);
     });
 });
 
 globalPauseBtn.addEventListener('click', () => {
-    animations.forEach(anim => anim.pause());
+    isGlobalPlaying = false;
+    animations.forEach(anim => {
+        anim.pause();
+        anim.enableIndividualControls();
+    });
 });
 
 globalCoverBtn.addEventListener('click', () => {
-    animations.forEach(anim => anim.showCover());
+    isGlobalPlaying = false;
+    animations.forEach(anim => {
+        anim.showCover();
+        anim.enableIndividualControls();
+    });
 });
 
-// Глобальное управление скоростью
+// Global speed control
 globalSpeedSlider.addEventListener('input', (e) => {
     globalSpeed = parseInt(e.target.value);
     const speedPerSec = 1000 / globalSpeed;
-    globalSpeedValue.textContent = `${speedPerSec.toFixed(1)} img/sec`;
+    globalSpeedValue.textContent = speedPerSec.toFixed(1);
+    
+    if (isGlobalPlaying) {
+        animations.forEach(anim => {
+            anim.setSpeed(globalSpeed);
+        });
+    }
 });
 
-// Управление развертыванием панелей
+// Modal functionality
 const expandButtons = document.querySelectorAll('.expand-btn');
 const modal = document.getElementById('modal');
 const modalCanvas = document.getElementById('modal-canvas');
 const modalTitle = document.getElementById('modal-title');
 const closeModal = document.getElementById('close-modal');
 const modalControls = document.querySelector('.modal-controls');
+const modalScrubber = document.getElementById('modal-scrubber');
 
 let expandedAnimation = null;
+let modalCtx = modalCanvas.getContext('2d');
+
+// Create modal frame buttons
+for (let i = 0; i < 24; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'frame-btn';
+    btn.textContent = i + 1;
+    btn.addEventListener('click', () => {
+        if (expandedAnimation) {
+            expandedAnimation.goToFrame(i);
+        }
+    });
+    modalScrubber.appendChild(btn);
+}
 
 expandButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -315,98 +378,84 @@ expandButtons.forEach(btn => {
 
 closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
-    if (expandedAnimation) {
-        expandedAnimation = null;
-    }
+    expandedAnimation = null;
 });
 
 function openModal(panelNumber) {
     expandedAnimation = animations[panelNumber - 1];
     
-    modalTitle.textContent = `Анимация ${panelNumber}`;
+    modalTitle.textContent = `Animation ${panelNumber}`;
     
-    // Копируем управление
-    modalControls.innerHTML = expandedAnimation.panel.querySelector('.controls').innerHTML;
+    // Set up modal controls
+    const modalPlayBtn = modalControls.querySelector('.modal-play-btn');
+    const modalPauseBtn = modalControls.querySelector('.modal-pause-btn');
+    const modalCoverBtn = modalControls.querySelector('.modal-cover-btn');
+    const modalSpeedSlider = modalControls.querySelector('.modal-speed-slider');
+    const modalSpeedValue = modalControls.querySelector('.modal-speed-value');
     
-    // Настраиваем обработчики для модального окна
-    const modalPlayBtn = modalControls.querySelector('.play-btn');
-    const modalPauseBtn = modalControls.querySelector('.pause-btn');
-    const modalCoverBtn = modalControls.querySelector('.cover-btn');
-    const modalSpeedSlider = modalControls.querySelector('.speed-slider');
-    const modalSpeedValue = modalControls.querySelector('.speed-value');
-    
-    modalPlayBtn.addEventListener('click', () => expandedAnimation.play());
-    modalPauseBtn.addEventListener('click', () => expandedAnimation.pause());
-    modalCoverBtn.addEventListener('click', () => expandedAnimation.showCover());
-    modalSpeedSlider.addEventListener('input', (e) => {
+    modalPlayBtn.onclick = () => expandedAnimation.play();
+    modalPauseBtn.onclick = () => expandedAnimation.pause();
+    modalCoverBtn.onclick = () => expandedAnimation.showCover();
+    modalSpeedSlider.oninput = (e) => {
         expandedAnimation.setSpeed(parseInt(e.target.value));
-    });
+    };
     
-    // Синхронизируем состояние кнопок
-    updateModalControls();
-    
-    // Запускаем рендеринг модального окна
-    renderModal();
-    
-    modal.style.display = 'block';
-}
-
-function updateModalControls() {
-    if (!expandedAnimation) return;
-    
-    const modalPlayBtn = modalControls.querySelector('.play-btn');
-    const modalPauseBtn = modalControls.querySelector('.pause-btn');
-    
-    modalPlayBtn.disabled = expandedAnimation.isPlaying && !expandedAnimation.isPaused;
-    modalPauseBtn.disabled = !expandedAnimation.isPlaying || expandedAnimation.isPaused;
-    
-    const modalSpeedSlider = modalControls.querySelector('.speed-slider');
-    const modalSpeedValue = modalControls.querySelector('.speed-value');
+    // Sync current values
     modalSpeedSlider.value = expandedAnimation.speed;
     expandedAnimation.updateSpeedDisplay.call({
         panel: { querySelector: () => modalSpeedValue },
         speed: expandedAnimation.speed
     });
+    
+    // Start rendering
+    modal.style.display = 'block';
+    renderModal();
 }
 
 function renderModal() {
     if (!expandedAnimation || modal.style.display === 'none') return;
     
-    const ctx = modalCanvas.getContext('2d');
-    ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
     
+    let imageToDraw;
     if (expandedAnimation.isOnCover && expandedAnimation.coverImage) {
-        // Центрируем обложку
-        const scale = Math.min(
-            modalCanvas.width / expandedAnimation.coverImage.width,
-            modalCanvas.height / expandedAnimation.coverImage.height
-        );
-        const width = expandedAnimation.coverImage.width * scale;
-        const height = expandedAnimation.coverImage.height * scale;
-        const x = (modalCanvas.width - width) / 2;
-        const y = (modalCanvas.height - height) / 2;
-        
-        ctx.drawImage(expandedAnimation.coverImage, x, y, width, height);
+        imageToDraw = expandedAnimation.coverImage;
     } else if (expandedAnimation.images[expandedAnimation.currentFrame]) {
-        // Центрируем кадр анимации
-        const img = expandedAnimation.images[expandedAnimation.currentFrame];
-        const scale = Math.min(
-            modalCanvas.width / img.width,
-            modalCanvas.height / img.height
-        );
-        const width = img.width * scale;
-        const height = img.height * scale;
-        const x = (modalCanvas.width - width) / 2;
-        const y = (modalCanvas.height - height) / 2;
-        
-        ctx.drawImage(img, x, y, width, height);
+        imageToDraw = expandedAnimation.images[expandedAnimation.currentFrame];
     }
     
-    updateModalControls();
+    if (imageToDraw) {
+        const scale = Math.min(
+            modalCanvas.width / imageToDraw.width,
+            modalCanvas.height / imageToDraw.height
+        );
+        const width = imageToDraw.width * scale;
+        const height = imageToDraw.height * scale;
+        const x = (modalCanvas.width - width) / 2;
+        const y = (modalCanvas.height - height) / 2;
+        
+        modalCtx.drawImage(imageToDraw, x, y, width, height);
+    }
+    
+    // Update modal scrubber
+    const modalFrameBtns = modalScrubber.querySelectorAll('.frame-btn');
+    modalFrameBtns.forEach((btn, index) => {
+        btn.classList.toggle('active', 
+            !expandedAnimation.isOnCover && index === expandedAnimation.currentFrame
+        );
+    });
+    
+    // Update modal control states
+    const modalPlayBtn = modalControls.querySelector('.modal-play-btn');
+    const modalPauseBtn = modalControls.querySelector('.modal-pause-btn');
+    
+    modalPlayBtn.disabled = expandedAnimation.isPlaying && !expandedAnimation.isPaused;
+    modalPauseBtn.disabled = !expandedAnimation.isPlaying || expandedAnimation.isPaused;
+    
     requestAnimationFrame(renderModal);
 }
 
-// Закрытие модального окна по клику вне его
+// Window event listeners
 window.addEventListener('click', (e) => {
     if (e.target === modal) {
         modal.style.display = 'none';
@@ -414,20 +463,17 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Ресайз модального окна
 window.addEventListener('resize', () => {
     if (modalCanvas) {
         modalCanvas.width = modalCanvas.parentElement.clientWidth;
-        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.8;
+        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
     }
 });
 
-// Инициализация размеров модального canvas
+// Initialize modal canvas size
 setTimeout(() => {
     if (modalCanvas) {
         modalCanvas.width = modalCanvas.parentElement.clientWidth;
-        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.8;
+        modalCanvas.height = modalCanvas.parentElement.clientHeight * 0.7;
     }
-}, 100);
-
-console.log('Анимационная панель загружена!');
+}, 
