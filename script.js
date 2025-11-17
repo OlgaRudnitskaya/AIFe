@@ -15,7 +15,6 @@ class AnimationController {
         this.animationId = null;
         this.totalFrames = 24;
         this.isOnCover = true;
-        this.isExpanded = false;
         
         this.createFrameButtons();
         this.setupControls();
@@ -41,23 +40,17 @@ class AnimationController {
         const coverBtn = this.panel.querySelector('.cover-btn');
         const speedSlider = this.panel.querySelector('.speed-slider');
         const speedValue = this.panel.querySelector('.speed-value');
-        const expandBtn = this.panel.querySelector('.expand-btn');
         
         playBtn.addEventListener('click', () => this.play());
         pauseBtn.addEventListener('click', () => this.pause());
         coverBtn.addEventListener('click', () => this.showCover());
-        expandBtn.addEventListener('click', () => this.toggleExpand());
         
-        // Set initial speed display (0.5 to 10)
+        // Set initial speed display
         this.updateSpeedDisplay();
         
         speedSlider.addEventListener('input', (e) => {
-            // Reverse the value for correct speed direction
-            const rawValue = parseInt(e.target.value);
-            const reversedValue = 2100 - rawValue; // 100-2000 becomes 2000-100
-            this.speed = reversedValue;
+            this.speed = parseInt(e.target.value);
             this.updateSpeedDisplay();
-            
             if (this.isPlaying && !this.isPaused) {
                 this.restartAnimation();
             }
@@ -191,29 +184,10 @@ class AnimationController {
             this.play();
         }
     }
-    
-    toggleExpand() {
-        this.isExpanded = !this.isExpanded;
-        
-        if (this.isExpanded) {
-            // Expand this panel
-            this.panel.classList.add('expanded');
-            // Create overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'overlay active';
-            overlay.addEventListener('click', () => this.toggleExpand());
-            document.body.appendChild(overlay);
-        } else {
-            // Collapse this panel
-            this.panel.classList.remove('expanded');
-            // Remove overlay
-            const overlay = document.querySelector('.overlay');
-            if (overlay) {
-                overlay.remove();
-            }
-        }
-    }
 }
+
+// Global state for expansion
+let expandedPanel = null;
 
 // Initialize animations when page loads
 window.addEventListener('load', function() {
@@ -226,6 +200,47 @@ window.addEventListener('load', function() {
             `canvas${i}`,
             `scrubber${i}`
         ));
+    }
+    
+    // Add collapse buttons to panel headers
+    for (let i = 1; i <= 5; i++) {
+        const panelHeader = document.querySelector(`#panel${i} .panel-header`);
+        const collapseBtn = document.createElement('button');
+        collapseBtn.className = 'collapse-btn';
+        collapseBtn.textContent = '✕ Collapse';
+        collapseBtn.addEventListener('click', () => collapseAll());
+        panelHeader.appendChild(collapseBtn);
+    }
+    
+    // Setup expand buttons
+    const expandButtons = document.querySelectorAll('.expand-btn');
+    expandButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const panelNumber = parseInt(e.target.getAttribute('data-panel'));
+            expandPanel(panelNumber);
+        });
+    });
+    
+    function expandPanel(panelNumber) {
+        const container = document.querySelector('.container');
+        const panel = document.getElementById(`panel${panelNumber}`);
+        
+        // Set expanded state
+        expandedPanel = panelNumber;
+        container.classList.add('expanded');
+        panel.classList.add('expanded');
+    }
+    
+    function collapseAll() {
+        const container = document.querySelector('.container');
+        const expandedPanels = document.querySelectorAll('.animation-panel.expanded');
+        
+        // Remove expanded state
+        expandedPanel = null;
+        container.classList.remove('expanded');
+        expandedPanels.forEach(panel => {
+            panel.classList.remove('expanded');
+        });
     }
     
     // Global controls
@@ -249,9 +264,8 @@ window.addEventListener('load', function() {
     
     // Set initial global speed display
     const updateGlobalSpeedDisplay = () => {
-        const rawValue = parseInt(globalSpeedSlider.value);
-        const reversedValue = 2100 - rawValue;
-        const speedPerSec = 1000 / reversedValue;
+        const speed = parseInt(globalSpeedSlider.value);
+        const speedPerSec = 1000 / speed;
         globalSpeedValue.textContent = speedPerSec.toFixed(1);
     };
     
@@ -271,11 +285,10 @@ window.addEventListener('load', function() {
     
     globalSpeedSlider.addEventListener('input', (e) => {
         updateGlobalSpeedDisplay();
-        const rawValue = parseInt(e.target.value);
-        const reversedValue = 2100 - rawValue;
+        const speed = parseInt(e.target.value);
         
         animations.forEach(anim => {
-            anim.speed = reversedValue;
+            anim.speed = speed;
             anim.updateSpeedDisplay();
             if (anim.isPlaying && !anim.isPaused) {
                 anim.restartAnimation();
