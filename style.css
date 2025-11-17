@@ -30,6 +30,30 @@ body {
     flex-direction: column;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     min-height: 0;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* Expanded state */
+.animation-panel.expanded {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1000;
+    background: white;
+    border: 3px solid #007acc;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+.animation-panel.expanded .canvas-container {
+    flex: 1;
+}
+
+.animation-panel.expanded canvas {
+    max-width: 90%;
+    max-height: 90%;
 }
 
 .legend-panel {
@@ -70,6 +94,15 @@ body {
 
 .expand-btn:hover {
     background: #545b62;
+}
+
+/* Change button text when expanded */
+.animation-panel.expanded .expand-btn {
+    background: #dc3545;
+}
+
+.animation-panel.expanded .expand-btn::after {
+    content: " Collapse";
 }
 
 .animation-container {
@@ -155,6 +188,19 @@ canvas {
 
 .speed-slider {
     width: 60px;
+}
+
+/* Fix speed slider direction */
+.speed-slider {
+    direction: rtl; /* This reverses the slider */
+}
+
+.speed-slider::-webkit-slider-thumb {
+    direction: ltr; /* Keep thumb orientation correct */
+}
+
+.speed-slider::-moz-range-thumb {
+    direction: ltr;
 }
 
 .frame-scrubber {
@@ -280,6 +326,22 @@ canvas {
     border-color: #1e7e34;
 }
 
+/* Overlay for expanded mode */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+.overlay.active {
+    display: block;
+}
+
 @media (max-width: 768px) {
     .container {
         grid-template-columns: 1fr;
@@ -297,5 +359,12 @@ canvas {
     
     .container {
         height: auto;
+    }
+    
+    .animation-panel.expanded {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
     }
 }
