@@ -49,10 +49,10 @@ class AnimationController {
         this.updateSpeedDisplay();
         
         speedSlider.addEventListener('input', (e) => {
-            this.speed = parseInt(e.target.value);
-            this.updateSpeedDisplay();
-            if (this.isPlaying && !this.isPaused) {
-                this.restartAnimation();
+            // Only allow speed changes when not playing
+            if (!this.isPlaying && !window.isGlobalPlaying) {
+                this.speed = parseInt(e.target.value);
+                this.updateSpeedDisplay();
             }
         });
     }
@@ -116,6 +116,7 @@ class AnimationController {
             this.ctx.drawImage(this.coverImage, 0, 0, this.canvas.width, this.canvas.height);
         }
         this.updateScrubber();
+        this.enableSpeedControl();
     }
     
     play() {
@@ -124,6 +125,7 @@ class AnimationController {
         this.isPlaying = true;
         this.isPaused = false;
         this.isOnCover = false;
+        this.disableSpeedControl();
         this.animate();
     }
     
@@ -131,6 +133,7 @@ class AnimationController {
         if (!this.isPlaying) return;
         
         this.isPaused = true;
+        this.enableSpeedControl();
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -139,6 +142,7 @@ class AnimationController {
     stop() {
         this.isPlaying = false;
         this.isPaused = false;
+        this.enableSpeedControl();
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -153,7 +157,7 @@ class AnimationController {
         
         this.animationId = setTimeout(() => {
             this.animate();
-        }, this.speed);
+        }, window.isGlobalPlaying ? window.globalSpeed : this.speed);
     }
     
     drawFrame(frameIndex) {
@@ -164,11 +168,14 @@ class AnimationController {
     }
     
     goToFrame(frameIndex) {
-        this.stop();
-        this.currentFrame = frameIndex;
-        this.isOnCover = false;
-        this.drawFrame(frameIndex);
-        this.updateScrubber();
+        // Only allow frame changes when not playing globally
+        if (!window.isGlobalPlaying) {
+            this.stop();
+            this.currentFrame = frameIndex;
+            this.isOnCover = false;
+            this.drawFrame(frameIndex);
+            this.updateScrubber();
+        }
     }
     
     updateScrubber() {
@@ -184,10 +191,35 @@ class AnimationController {
             this.play();
         }
     }
+    
+    disableSpeedControl() {
+        const speedSlider = this.panel.querySelector('.speed-slider');
+        speedSlider.disabled = true;
+    }
+    
+    enableSpeedControl() {
+        // Only enable if not playing globally
+        if (!window.isGlobalPlaying) {
+            const speedSlider = this.panel.querySelector('.speed-slider');
+            speedSlider.disabled = false;
+        }
+    }
+    
+    syncPlay(globalSpeed) {
+        this.currentFrame = 0;
+        this.isOnCover = false;
+        this.drawFrame(0);
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.disableSpeedControl();
+        this.animate();
+    }
 }
 
-// Global state for expansion
+// Global state for expansion and synchronization
 let expandedPanel = null;
+window.isGlobalPlaying = false;
+window.globalSpeed = 500;
 
 // Initialize animations when page loads
 window.addEventListener('load', function() {
@@ -257,7 +289,10 @@ window.addEventListener('load', function() {
         btn.className = 'frame-btn';
         btn.textContent = i + 1;
         btn.addEventListener('click', () => {
-            animations.forEach(anim => anim.goToFrame(i));
+            // Only allow frame changes when not playing globally
+            if (!window.isGlobalPlaying) {
+                animations.forEach(anim => anim.goToFrame(i));
+            }
         });
         globalScrubber.appendChild(btn);
     }
@@ -267,33 +302,71 @@ window.addEventListener('load', function() {
         const speed = parseInt(globalSpeedSlider.value);
         const speedPerSec = 1000 / speed;
         globalSpeedValue.textContent = speedPerSec.toFixed(1);
+        window.globalSpeed = speed;
     };
     
     updateGlobalSpeedDisplay();
     
+    // Disable global speed slider during playback
+    const disableGlobalSpeedControl = () => {
+        globalSpeedSlider.disabled = true;
+    };
+    
+    const enableGlobalSpeedControl = () => {
+        globalSpeedSlider.disabled = false;
+    };
+    
     globalPlayBtn.addEventListener('click', () => {
-        animations.forEach(anim => anim.play());
+        window.isGlobalPlaying = true;
+        disableGlobalSpeedControl();
+        
+        // Start all animations synchronized from frame 0
+        animations.forEach(anim => {
+            anim.syncPlay(window.globalSpeed);
+        });
+        
+        // Update global scrubber to show frame 0
+        const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
+        globalFrameBtns.forEach((btn, index) => {
+            btn.classList.toggle('active', index === 0);
+        });
     });
     
     globalPauseBtn.addEventListener('click', () => {
-        animations.forEach(anim => anim.pause());
+        window.isGlobalPlaying = false;
+        enableGlobalSpeedControl();
+        
+        animations.forEach(anim => {
+            anim.pause();
+            anim.enableSpeedControl();
+        });
     });
     
     globalCoverBtn.addEventListener('click', () => {
-        animations.forEach(anim => anim.showCover());
+        window.isGlobalPlaying = false;
+        enableGlobalSpeedControl();
+        
+        animations.forEach(anim => {
+            anim.showCover();
+            anim.enableSpeedControl();
+        });
+        
+        // Clear global scrubber highlighting
+        const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
+        globalFrameBtns.forEach(btn => btn.classList.remove('active'));
     });
     
     globalSpeedSlider.addEventListener('input', (e) => {
-        updateGlobalSpeedDisplay();
-        const speed = parseInt(e.target.value);
-        
-        animations.forEach(anim => {
-            anim.speed = speed;
-            anim.updateSpeedDisplay();
-            if (anim.isPlaying && !anim.isPaused) {
-                anim.restartAnimation();
-            }
-        });
+        // Only allow speed changes when not playing globally
+        if (!window.isGlobalPlaying) {
+            updateGlobalSpeedDisplay();
+            const speed = parseInt(e.target.value);
+            
+            animations.forEach(anim => {
+                anim.speed = speed;
+                anim.updateSpeedDisplay();
+            });
+        }
     });
     
     console.log('Animations loaded successfully! All panels show covers by default.');
