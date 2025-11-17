@@ -28,7 +28,8 @@ class AnimationController {
         for (let i = 0; i < this.totalFrames; i++) {
             const btn = document.createElement('button');
             btn.className = 'frame-btn';
-            btn.textContent = i + 1;
+            btn.textContent = `${i}:00`; // Format as 0:00, 1:00, etc.
+            btn.title = `Frame ${i}:00`;
             btn.addEventListener('click', () => this.goToFrame(i));
             this.scrubber.appendChild(btn);
         }
@@ -66,31 +67,46 @@ class AnimationController {
     
     async loadImages() {
         try {
+            console.log(`Loading cover: ${this.config.coverPath}`);
+            
             // Load cover image
             this.coverImage = new Image();
             await new Promise((resolve, reject) => {
-                this.coverImage.onload = resolve;
-                this.coverImage.onerror = reject;
+                this.coverImage.onload = () => {
+                    console.log(`Cover loaded: ${this.config.coverPath}`);
+                    resolve();
+                };
+                this.coverImage.onerror = () => {
+                    console.error(`Error loading cover: ${this.config.coverPath}`);
+                    reject(new Error(`Failed to load cover: ${this.config.coverPath}`));
+                };
                 this.coverImage.src = this.config.coverPath;
             });
             
             // Load animation frames
+            console.log(`Loading frames for ${this.config.name}...`);
             for (let i = 0; i < this.totalFrames; i++) {
-                const frameNumber = i.toString().padStart(1, '0');
                 const framePath = this.config.getFramePath(i);
+                console.log(`Loading frame ${i}: ${framePath}`);
                 
                 const img = new Image();
                 await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
+                    img.onload = () => {
+                        console.log(`Frame ${i} loaded: ${framePath}`);
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        console.error(`Error loading frame ${i}: ${framePath}`);
+                        reject(new Error(`Failed to load frame ${i}: ${framePath}`));
+                    };
                     img.src = framePath;
                 });
                 this.images.push(img);
             }
             
             this.imagesLoaded = true;
+            console.log(`All images loaded for ${this.config.name}`);
             this.showCover(); // Show cover when images are loaded
-            console.log(`Loaded images for ${this.config.name}`);
             
         } catch (error) {
             console.error(`Error loading images for ${this.config.name}:`, error);
@@ -99,6 +115,8 @@ class AnimationController {
     }
     
     generateErrorContent() {
+        console.log(`Generating error content for ${this.config.name}`);
+        
         // Create error cover
         const coverCanvas = document.createElement('canvas');
         coverCanvas.width = 400;
@@ -114,7 +132,8 @@ class AnimationController {
         coverCtx.fillStyle = '#666';
         coverCtx.font = '14px Arial';
         coverCtx.fillText(this.config.name, coverCanvas.width / 2, coverCanvas.height / 2);
-        coverCtx.fillText('Check file paths', coverCanvas.width / 2, coverCanvas.height / 2 + 40);
+        coverCtx.fillText('Check file paths', coverCanvas.width / 2, coverCanvas.height / 2 + 20);
+        coverCtx.fillText(this.config.coverPath, coverCanvas.width / 2, coverCanvas.height / 2 + 40);
         
         this.coverImage = new Image();
         this.coverImage.src = coverCanvas.toDataURL();
@@ -132,7 +151,7 @@ class AnimationController {
             ctx.fillStyle = '#333';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`${this.config.name} - Frame ${i + 1}`, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(`${this.config.name} - ${i}:00`, canvas.width / 2, canvas.height / 2);
             ctx.fillStyle = '#666';
             ctx.font = '12px Arial';
             ctx.fillText('Demo content - check image paths', canvas.width / 2, canvas.height / 2 + 30);
@@ -275,28 +294,28 @@ class AnimationController {
 const animationConfigs = [
     {
         name: "NDSI",
-        coverPath: "images/Animation 1/NDSI Mean 2.png",
-        getFramePath: (frameIndex) => `images/Animation 1/NDSI ${frameIndex}_00.png`
+        coverPath: "images/Animation%201/NDSI%20Mean%202.png",
+        getFramePath: (frameIndex) => `images/Animation%201/NDSI%20${frameIndex}_00.png`
     },
     {
         name: "ADI", 
-        coverPath: "images/Animation 2/ADI Mean 1.png",
-        getFramePath: (frameIndex) => `images/Animation 2/ADI ${frameIndex}_00.png`
+        coverPath: "images/Animation%202/ADI%20Mean%201.png",
+        getFramePath: (frameIndex) => `images/Animation%202/ADI%20${frameIndex}_00.png`
     },
     {
         name: "SPL",
-        coverPath: "images/Animation 3/SPL Mean 3.png", 
-        getFramePath: (frameIndex) => `images/Animation 3/SPL ${frameIndex}_00.png`
+        coverPath: "images/Animation%203/SPL%20Mean%203.png", 
+        getFramePath: (frameIndex) => `images/Animation%203/SPL%20${frameIndex}_00.png`
     },
     {
         name: "BI",
-        coverPath: "images/Animation 4/BI Mean 1.png",
-        getFramePath: (frameIndex) => `images/Animation 4/BI ${frameIndex}_00.png`
+        coverPath: "images/Animation%204/BI%20Mean%201.png",
+        getFramePath: (frameIndex) => `images/Animation%204/BI%20${frameIndex}_00.png`
     },
     {
         name: "ACI",
-        coverPath: "images/Animation5/ACI Mean.png",
-        getFramePath: (frameIndex) => `images/Animation5/ACI ${frameIndex}_00.png`
+        coverPath: "images/Animation5/ACI%20Mean.png",
+        getFramePath: (frameIndex) => `images/Animation5/ACI%20${frameIndex}_00.png`
     }
 ];
 
@@ -394,11 +413,12 @@ window.addEventListener('load', function() {
     const globalSpeedValue = document.getElementById('global-speed-value');
     const globalScrubber = document.getElementById('global-scrubber');
     
-    // Create global frame buttons
+    // Create global frame buttons with time format
     for (let i = 0; i < 24; i++) {
         const btn = document.createElement('button');
         btn.className = 'frame-btn';
-        btn.textContent = i + 1;
+        btn.textContent = `${i}:00`;
+        btn.title = `Frame ${i}:00`;
         btn.addEventListener('click', () => {
             // Only allow frame changes when not playing globally
             if (!window.isGlobalPlaying) {
