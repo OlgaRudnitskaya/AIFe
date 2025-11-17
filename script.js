@@ -126,7 +126,13 @@ class AnimationController {
         this.isPaused = false;
         this.isOnCover = false;
         this.disableSpeedControl();
-        this.animate();
+        
+        // Use global timing for synchronization
+        if (window.isGlobalPlaying) {
+            this.syncAnimate();
+        } else {
+            this.animate();
+        }
     }
     
     pause() {
@@ -157,7 +163,21 @@ class AnimationController {
         
         this.animationId = setTimeout(() => {
             this.animate();
-        }, window.isGlobalPlaying ? window.globalSpeed : this.speed);
+        }, this.speed);
+    }
+    
+    // Synchronized animation using global timer
+    syncAnimate() {
+        if (!this.isPlaying || this.isPaused || !window.isGlobalPlaying) return;
+        
+        const currentGlobalFrame = window.globalCurrentFrame;
+        if (currentGlobalFrame !== this.currentFrame) {
+            this.currentFrame = currentGlobalFrame;
+            this.drawFrame(this.currentFrame);
+            this.updateScrubber();
+        }
+        
+        this.animationId = requestAnimationFrame(() => this.syncAnimate());
     }
     
     drawFrame(frameIndex) {
@@ -168,8 +188,8 @@ class AnimationController {
     }
     
     goToFrame(frameIndex) {
-        // Only allow frame changes when not playing globally
-        if (!window.isGlobalPlaying) {
+        // Only allow frame changes when not playing
+        if (!this.isPlaying && !window.isGlobalPlaying) {
             this.stop();
             this.currentFrame = frameIndex;
             this.isOnCover = false;
@@ -198,21 +218,21 @@ class AnimationController {
     }
     
     enableSpeedControl() {
-        // Only enable if not playing globally
-        if (!window.isGlobalPlaying) {
+        // Only enable if not playing (individually or globally)
+        if (!this.isPlaying && !window.isGlobalPlaying) {
             const speedSlider = this.panel.querySelector('.speed-slider');
             speedSlider.disabled = false;
         }
     }
     
-    syncPlay(globalSpeed) {
+    syncPlay() {
         this.currentFrame = 0;
         this.isOnCover = false;
         this.drawFrame(0);
         this.isPlaying = true;
         this.isPaused = false;
         this.disableSpeedControl();
-        this.animate();
+        this.syncAnimate();
     }
 }
 
@@ -220,6 +240,32 @@ class AnimationController {
 let expandedPanel = null;
 window.isGlobalPlaying = false;
 window.globalSpeed = 500;
+window.globalCurrentFrame = 0;
+window.globalAnimationId = null;
+
+// Global animation timer for perfect synchronization
+function startGlobalAnimation() {
+    if (!window.isGlobalPlaying) return;
+    
+    window.globalCurrentFrame = (window.globalCurrentFrame + 1) % 24;
+    
+    // Update global scrubber
+    const globalFrameBtns = document.querySelectorAll('#global-scrubber .frame-btn');
+    globalFrameBtns.forEach((btn, index) => {
+        btn.classList.toggle('active', index === window.globalCurrentFrame);
+    });
+    
+    window.globalAnimationId = setTimeout(() => {
+        startGlobalAnimation();
+    }, window.globalSpeed);
+}
+
+function stopGlobalAnimation() {
+    if (window.globalAnimationId) {
+        clearTimeout(window.globalAnimationId);
+        window.globalAnimationId = null;
+    }
+}
 
 // Initialize animations when page loads
 window.addEventListener('load', function() {
@@ -291,7 +337,18 @@ window.addEventListener('load', function() {
         btn.addEventListener('click', () => {
             // Only allow frame changes when not playing globally
             if (!window.isGlobalPlaying) {
-                animations.forEach(anim => anim.goToFrame(i));
+                animations.forEach(anim => {
+                    anim.stop();
+                    anim.currentFrame = i;
+                    anim.isOnCover = false;
+                    anim.drawFrame(i);
+                    anim.updateScrubber();
+                });
+                // Update global scrubber
+                const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
+                globalFrameBtns.forEach((btn, index) => {
+                    btn.classList.toggle('active', index === i);
+                });
             }
         });
         globalScrubber.appendChild(btn);
@@ -317,24 +374,28 @@ window.addEventListener('load', function() {
     };
     
     globalPlayBtn.addEventListener('click', () => {
+        if (window.isGlobalPlaying) return;
+        
         window.isGlobalPlaying = true;
+        window.globalCurrentFrame = 0;
         disableGlobalSpeedControl();
         
-        // Start all animations synchronized from frame 0
-        animations.forEach(anim => {
-            anim.syncPlay(window.globalSpeed);
-        });
+        // Start global animation timer
+        stopGlobalAnimation();
+        startGlobalAnimation();
         
-        // Update global scrubber to show frame 0
-        const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
-        globalFrameBtns.forEach((btn, index) => {
-            btn.classList.toggle('active', index === 0);
+        // Start all animations synchronized
+        animations.forEach(anim => {
+            anim.syncPlay();
         });
     });
     
     globalPauseBtn.addEventListener('click', () => {
+        if (!window.isGlobalPlaying) return;
+        
         window.isGlobalPlaying = false;
         enableGlobalSpeedControl();
+        stopGlobalAnimation();
         
         animations.forEach(anim => {
             anim.pause();
@@ -345,6 +406,7 @@ window.addEventListener('load', function() {
     globalCoverBtn.addEventListener('click', () => {
         window.isGlobalPlaying = false;
         enableGlobalSpeedControl();
+        stopGlobalAnimation();
         
         animations.forEach(anim => {
             anim.showCover();
@@ -354,6 +416,7 @@ window.addEventListener('load', function() {
         // Clear global scrubber highlighting
         const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
         globalFrameBtns.forEach(btn => btn.classList.remove('active'));
+        window.globalCurrentFrame = 0;
     });
     
     globalSpeedSlider.addEventListener('input', (e) => {
