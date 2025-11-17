@@ -15,18 +15,19 @@
                 <button class="expand-btn" data-panel="1">⛶ Развернуть</button>
             </div>
             <div class="animation-container">
-                <canvas id="canvas1" width="400" height="300"></canvas>
+                <div class="canvas-container">
+                    <canvas id="canvas1" width="400" height="400"></canvas>
+                </div>
                 <div class="controls">
                     <div class="control-buttons">
                         <button class="play-btn">▶ Пуск</button>
                         <button class="pause-btn">⏸ Пауза</button>
-                        <button class="stop-btn">⏹ Стоп</button>
                         <button class="cover-btn">📊 Обложка</button>
                     </div>
                     <div class="speed-control">
                         <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="50" max="1000" value="200">
-                        <span class="speed-value">200 мс</span>
+                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                        <span class="speed-value">2 img/sec</span>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber1">
@@ -42,18 +43,19 @@
                 <button class="expand-btn" data-panel="2">⛶ Развернуть</button>
             </div>
             <div class="animation-container">
-                <canvas id="canvas2" width="400" height="300"></canvas>
+                <div class="canvas-container">
+                    <canvas id="canvas2" width="400" height="400"></canvas>
+                </div>
                 <div class="controls">
                     <div class="control-buttons">
                         <button class="play-btn">▶ Пуск</button>
                         <button class="pause-btn">⏸ Пауза</button>
-                        <button class="stop-btn">⏹ Стоп</button>
                         <button class="cover-btn">📊 Обложка</button>
                     </div>
                     <div class="speed-control">
                         <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="50" max="1000" value="200">
-                        <span class="speed-value">200 мс</span>
+                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                        <span class="speed-value">2 img/sec</span>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber2">
@@ -69,18 +71,19 @@
                 <button class="expand-btn" data-panel="3">⛶ Развернуть</button>
             </div>
             <div class="animation-container">
-                <canvas id="canvas3" width="400" height="300"></canvas>
+                <div class="canvas-container">
+                    <canvas id="canvas3" width="400" height="400"></canvas>
+                </div>
                 <div class="controls">
                     <div class="control-buttons">
                         <button class="play-btn">▶ Пуск</button>
                         <button class="pause-btn">⏸ Пауза</button>
-                        <button class="stop-btn">⏹ Стоп</button>
                         <button class="cover-btn">📊 Обложка</button>
                     </div>
                     <div class="speed-control">
                         <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="50" max="1000" value="200">
-                        <span class="speed-value">200 мс</span>
+                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                        <span class="speed-value">2 img/sec</span>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber3">
@@ -96,18 +99,19 @@
                 <button class="expand-btn" data-panel="4">⛶ Развернуть</button>
             </div>
             <div class="animation-container">
-                <canvas id="canvas4" width="400" height="300"></canvas>
+                <div class="canvas-container">
+                    <canvas id="canvas4" width="400" height="400"></canvas>
+                </div>
                 <div class="controls">
                     <div class="control-buttons">
                         <button class="play-btn">▶ Пуск</button>
                         <button class="pause-btn">⏸ Пауза</button>
-                        <button class="stop-btn">⏹ Стоп</button>
                         <button class="cover-btn">📊 Обложка</button>
                     </div>
                     <div class="speed-control">
                         <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="50" max="1000" value="200">
-                        <span class="speed-value">200 мс</span>
+                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                        <span class="speed-value">2 img/sec</span>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber4">
@@ -123,18 +127,19 @@
                 <button class="expand-btn" data-panel="5">⛶ Развернуть</button>
             </div>
             <div class="animation-container">
-                <canvas id="canvas5" width="400" height="300"></canvas>
+                <div class="canvas-container">
+                    <canvas id="canvas5" width="400" height="400"></canvas>
+                </div>
                 <div class="controls">
                     <div class="control-buttons">
                         <button class="play-btn">▶ Пуск</button>
                         <button class="pause-btn">⏸ Пауза</button>
-                        <button class="stop-btn">⏹ Стоп</button>
                         <button class="cover-btn">📊 Обложка</button>
                     </div>
                     <div class="speed-control">
                         <label>Скорость:</label>
-                        <input type="range" class="speed-slider" min="50" max="1000" value="200">
-                        <span class="speed-value">200 мс</span>
+                        <input type="range" class="speed-slider" min="100" max="2000" value="500">
+                        <span class="speed-value">2 img/sec</span>
                     </div>
                 </div>
                 <div class="frame-scrubber" id="scrubber5">
@@ -165,12 +170,11 @@
             <div class="global-controls">
                 <button id="global-play">▶ Запуск всех анимаций</button>
                 <button id="global-pause">⏸ Пауза всех</button>
-                <button id="global-stop">⏹ Стоп всех</button>
                 <button id="global-cover">📊 Все на обложки</button>
                 <div class="speed-control">
                     <label>Общая скорость:</label>
-                    <input type="range" id="global-speed" min="50" max="1000" value="200">
-                    <span id="global-speed-value">200 мс</span>
+                    <input type="range" id="global-speed" min="100" max="2000" value="500">
+                    <span id="global-speed-value">2 img/sec</span>
                 </div>
                 <div class="global-scrubber" id="global-scrubber">
                     <!-- Общие 24 кнопки -->
@@ -186,9 +190,13 @@
                 <h3 id="modal-title">Анимация</h3>
                 <button id="close-modal" class="close-btn">✕ Свернуть</button>
             </div>
-            <canvas id="modal-canvas"></canvas>
-            <div class="modal-controls">
-                <!-- Управление будет копироваться из оригинальной панели -->
+            <div class="modal-animation-container">
+                <div class="canvas-container">
+                    <canvas id="modal-canvas"></canvas>
+                </div>
+                <div class="modal-controls">
+                    <!-- Управление будет копироваться динамически -->
+                </div>
             </div>
         </div>
     </div>
