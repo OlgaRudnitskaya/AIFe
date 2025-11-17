@@ -1,4 +1,4 @@
-// Simple working version
+// Simple working version with expansion
 class AnimationController {
     constructor(panelId, canvasId, scrubberId) {
         this.panel = document.getElementById(panelId);
@@ -15,11 +15,12 @@ class AnimationController {
         this.animationId = null;
         this.totalFrames = 24;
         this.isOnCover = true;
+        this.isExpanded = false;
         
         this.createFrameButtons();
         this.setupControls();
         this.generateDemoContent();
-        this.showCover();
+        this.showCover(); // Show cover by default on startup
     }
     
     createFrameButtons() {
@@ -40,19 +41,33 @@ class AnimationController {
         const coverBtn = this.panel.querySelector('.cover-btn');
         const speedSlider = this.panel.querySelector('.speed-slider');
         const speedValue = this.panel.querySelector('.speed-value');
+        const expandBtn = this.panel.querySelector('.expand-btn');
         
         playBtn.addEventListener('click', () => this.play());
         pauseBtn.addEventListener('click', () => this.pause());
         coverBtn.addEventListener('click', () => this.showCover());
+        expandBtn.addEventListener('click', () => this.toggleExpand());
+        
+        // Set initial speed display (0.5 to 10)
+        this.updateSpeedDisplay();
         
         speedSlider.addEventListener('input', (e) => {
-            this.speed = parseInt(e.target.value);
-            const speedPerSec = 1000 / this.speed;
-            speedValue.textContent = speedPerSec.toFixed(1);
+            // Reverse the value for correct speed direction
+            const rawValue = parseInt(e.target.value);
+            const reversedValue = 2100 - rawValue; // 100-2000 becomes 2000-100
+            this.speed = reversedValue;
+            this.updateSpeedDisplay();
+            
             if (this.isPlaying && !this.isPaused) {
                 this.restartAnimation();
             }
         });
+    }
+    
+    updateSpeedDisplay() {
+        const speedValue = this.panel.querySelector('.speed-value');
+        const speedPerSec = 1000 / this.speed;
+        speedValue.textContent = speedPerSec.toFixed(1);
     }
     
     generateDemoContent() {
@@ -176,6 +191,28 @@ class AnimationController {
             this.play();
         }
     }
+    
+    toggleExpand() {
+        this.isExpanded = !this.isExpanded;
+        
+        if (this.isExpanded) {
+            // Expand this panel
+            this.panel.classList.add('expanded');
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay active';
+            overlay.addEventListener('click', () => this.toggleExpand());
+            document.body.appendChild(overlay);
+        } else {
+            // Collapse this panel
+            this.panel.classList.remove('expanded');
+            // Remove overlay
+            const overlay = document.querySelector('.overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+    }
 }
 
 // Initialize animations when page loads
@@ -210,6 +247,16 @@ window.addEventListener('load', function() {
         globalScrubber.appendChild(btn);
     }
     
+    // Set initial global speed display
+    const updateGlobalSpeedDisplay = () => {
+        const rawValue = parseInt(globalSpeedSlider.value);
+        const reversedValue = 2100 - rawValue;
+        const speedPerSec = 1000 / reversedValue;
+        globalSpeedValue.textContent = speedPerSec.toFixed(1);
+    };
+    
+    updateGlobalSpeedDisplay();
+    
     globalPlayBtn.addEventListener('click', () => {
         animations.forEach(anim => anim.play());
     });
@@ -223,17 +270,18 @@ window.addEventListener('load', function() {
     });
     
     globalSpeedSlider.addEventListener('input', (e) => {
-        const speed = parseInt(e.target.value);
-        const speedPerSec = 1000 / speed;
-        globalSpeedValue.textContent = speedPerSec.toFixed(1);
+        updateGlobalSpeedDisplay();
+        const rawValue = parseInt(e.target.value);
+        const reversedValue = 2100 - rawValue;
         
         animations.forEach(anim => {
-            anim.speed = speed;
+            anim.speed = reversedValue;
+            anim.updateSpeedDisplay();
             if (anim.isPlaying && !anim.isPaused) {
                 anim.restartAnimation();
             }
         });
     });
     
-    console.log('Animations loaded successfully!');
+    console.log('Animations loaded successfully! All panels show covers by default.');
 });
