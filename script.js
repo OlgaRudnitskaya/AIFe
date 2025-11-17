@@ -1,10 +1,11 @@
-// Simple working version with expansion
+// Soundscape Animations with real images
 class AnimationController {
-    constructor(panelId, canvasId, scrubberId) {
+    constructor(panelId, canvasId, scrubberId, animationConfig) {
         this.panel = document.getElementById(panelId);
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.scrubber = document.getElementById(scrubberId);
+        this.config = animationConfig;
         
         this.images = [];
         this.coverImage = null;
@@ -15,11 +16,11 @@ class AnimationController {
         this.animationId = null;
         this.totalFrames = 24;
         this.isOnCover = true;
+        this.imagesLoaded = false;
         
         this.createFrameButtons();
         this.setupControls();
-        this.generateDemoContent();
-        this.showCover(); // Show cover by default on startup
+        this.loadImages();
     }
     
     createFrameButtons() {
@@ -63,27 +64,62 @@ class AnimationController {
         speedValue.textContent = speedPerSec.toFixed(1);
     }
     
-    generateDemoContent() {
-        // Create demo cover
+    async loadImages() {
+        try {
+            // Load cover image
+            this.coverImage = new Image();
+            await new Promise((resolve, reject) => {
+                this.coverImage.onload = resolve;
+                this.coverImage.onerror = reject;
+                this.coverImage.src = this.config.coverPath;
+            });
+            
+            // Load animation frames
+            for (let i = 0; i < this.totalFrames; i++) {
+                const frameNumber = i.toString().padStart(1, '0');
+                const framePath = this.config.getFramePath(i);
+                
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = framePath;
+                });
+                this.images.push(img);
+            }
+            
+            this.imagesLoaded = true;
+            this.showCover(); // Show cover when images are loaded
+            console.log(`Loaded images for ${this.config.name}`);
+            
+        } catch (error) {
+            console.error(`Error loading images for ${this.config.name}:`, error);
+            this.generateErrorContent();
+        }
+    }
+    
+    generateErrorContent() {
+        // Create error cover
         const coverCanvas = document.createElement('canvas');
         coverCanvas.width = 400;
         coverCanvas.height = 400;
         const coverCtx = coverCanvas.getContext('2d');
         
-        coverCtx.fillStyle = '#e7f3ff';
+        coverCtx.fillStyle = '#ffe6e6';
         coverCtx.fillRect(0, 0, coverCanvas.width, coverCanvas.height);
-        coverCtx.fillStyle = '#007acc';
-        coverCtx.font = 'bold 32px Arial';
+        coverCtx.fillStyle = '#dc3545';
+        coverCtx.font = 'bold 20px Arial';
         coverCtx.textAlign = 'center';
-        coverCtx.fillText('📊 COVER', coverCanvas.width / 2, coverCanvas.height / 2 - 20);
-        coverCtx.fillStyle = '#333';
-        coverCtx.font = '16px Arial';
-        coverCtx.fillText('Average values', coverCanvas.width / 2, coverCanvas.height / 2 + 20);
+        coverCtx.fillText('❌ Image Loading Error', coverCanvas.width / 2, coverCanvas.height / 2 - 40);
+        coverCtx.fillStyle = '#666';
+        coverCtx.font = '14px Arial';
+        coverCtx.fillText(this.config.name, coverCanvas.width / 2, coverCanvas.height / 2);
+        coverCtx.fillText('Check file paths', coverCanvas.width / 2, coverCanvas.height / 2 + 40);
         
         this.coverImage = new Image();
         this.coverImage.src = coverCanvas.toDataURL();
         
-        // Create demo frames
+        // Create error frames
         for (let i = 0; i < this.totalFrames; i++) {
             const canvas = document.createElement('canvas');
             canvas.width = 400;
@@ -91,24 +127,28 @@ class AnimationController {
             const ctx = canvas.getContext('2d');
             
             const hue = (i * 15) % 360;
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, `hsl(${hue}, 70%, 80%)`);
-            gradient.addColorStop(1, `hsl(${hue + 180}, 70%, 80%)`);
-            
-            ctx.fillStyle = gradient;
+            ctx.fillStyle = `hsl(${hue}, 70%, 90%)`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 24px Arial';
+            ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`Frame ${i + 1}`, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(`${this.config.name} - Frame ${i + 1}`, canvas.width / 2, canvas.height / 2);
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.fillText('Demo content - check image paths', canvas.width / 2, canvas.height / 2 + 30);
             
             const img = new Image();
             img.src = canvas.toDataURL();
             this.images.push(img);
         }
+        
+        this.imagesLoaded = true;
+        this.showCover();
     }
     
     showCover() {
+        if (!this.imagesLoaded) return;
+        
         this.stop();
         this.isOnCover = true;
         if (this.coverImage) {
@@ -120,7 +160,7 @@ class AnimationController {
     }
     
     play() {
-        if (this.isPlaying && !this.isPaused) return;
+        if (!this.imagesLoaded || (this.isPlaying && !this.isPaused)) return;
         
         this.isPlaying = true;
         this.isPaused = false;
@@ -155,7 +195,7 @@ class AnimationController {
     }
     
     animate() {
-        if (!this.isPlaying || this.isPaused) return;
+        if (!this.isPlaying || this.isPaused || !this.imagesLoaded) return;
         
         this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
         this.drawFrame(this.currentFrame);
@@ -168,7 +208,7 @@ class AnimationController {
     
     // Synchronized animation using global timer
     syncAnimate() {
-        if (!this.isPlaying || this.isPaused || !window.isGlobalPlaying) return;
+        if (!this.isPlaying || this.isPaused || !window.isGlobalPlaying || !this.imagesLoaded) return;
         
         const currentGlobalFrame = window.globalCurrentFrame;
         if (currentGlobalFrame !== this.currentFrame) {
@@ -188,8 +228,8 @@ class AnimationController {
     }
     
     goToFrame(frameIndex) {
-        // Only allow frame changes when not playing
-        if (!this.isPlaying && !window.isGlobalPlaying) {
+        // Only allow frame changes when not playing and images are loaded
+        if (!this.isPlaying && !window.isGlobalPlaying && this.imagesLoaded) {
             this.stop();
             this.currentFrame = frameIndex;
             this.isOnCover = false;
@@ -203,13 +243,6 @@ class AnimationController {
         frameBtns.forEach((btn, index) => {
             btn.classList.toggle('active', !this.isOnCover && index === this.currentFrame);
         });
-    }
-    
-    restartAnimation() {
-        if (this.isPlaying && !this.isPaused) {
-            this.stop();
-            this.play();
-        }
     }
     
     disableSpeedControl() {
@@ -226,6 +259,8 @@ class AnimationController {
     }
     
     syncPlay() {
+        if (!this.imagesLoaded) return;
+        
         this.currentFrame = 0;
         this.isOnCover = false;
         this.drawFrame(0);
@@ -235,6 +270,35 @@ class AnimationController {
         this.syncAnimate();
     }
 }
+
+// Animation configurations for each soundscape index
+const animationConfigs = [
+    {
+        name: "NDSI",
+        coverPath: "images/Animation 1/NDSI Mean 2.png",
+        getFramePath: (frameIndex) => `images/Animation 1/NDSI ${frameIndex}_00.png`
+    },
+    {
+        name: "ADI", 
+        coverPath: "images/Animation 2/ADI Mean 1.png",
+        getFramePath: (frameIndex) => `images/Animation 2/ADI ${frameIndex}_00.png`
+    },
+    {
+        name: "SPL",
+        coverPath: "images/Animation 3/SPL Mean 3.png", 
+        getFramePath: (frameIndex) => `images/Animation 3/SPL ${frameIndex}_00.png`
+    },
+    {
+        name: "BI",
+        coverPath: "images/Animation 4/BI Mean 1.png",
+        getFramePath: (frameIndex) => `images/Animation 4/BI ${frameIndex}_00.png`
+    },
+    {
+        name: "ACI",
+        coverPath: "images/Animation5/ACI Mean.png",
+        getFramePath: (frameIndex) => `images/Animation5/ACI ${frameIndex}_00.png`
+    }
+];
 
 // Global state for expansion and synchronization
 let expandedPanel = null;
@@ -271,12 +335,13 @@ function stopGlobalAnimation() {
 window.addEventListener('load', function() {
     const animations = [];
     
-    // Create 5 animation panels
-    for (let i = 1; i <= 5; i++) {
+    // Create 5 animation panels with real configurations
+    for (let i = 0; i < 5; i++) {
         animations.push(new AnimationController(
-            `panel${i}`,
-            `canvas${i}`,
-            `scrubber${i}`
+            `panel${i + 1}`,
+            `canvas${i + 1}`,
+            `scrubber${i + 1}`,
+            animationConfigs[i]
         ));
     }
     
@@ -338,11 +403,13 @@ window.addEventListener('load', function() {
             // Only allow frame changes when not playing globally
             if (!window.isGlobalPlaying) {
                 animations.forEach(anim => {
-                    anim.stop();
-                    anim.currentFrame = i;
-                    anim.isOnCover = false;
-                    anim.drawFrame(i);
-                    anim.updateScrubber();
+                    if (anim.imagesLoaded) {
+                        anim.stop();
+                        anim.currentFrame = i;
+                        anim.isOnCover = false;
+                        anim.drawFrame(i);
+                        anim.updateScrubber();
+                    }
                 });
                 // Update global scrubber
                 const globalFrameBtns = globalScrubber.querySelectorAll('.frame-btn');
@@ -432,5 +499,5 @@ window.addEventListener('load', function() {
         }
     });
     
-    console.log('Animations loaded successfully! All panels show covers by default.');
+    console.log('Soundscape animations initialized! Loading real images...');
 });
