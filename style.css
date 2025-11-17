@@ -343,3 +343,8 @@ canvas {
         height: auto;
     }
 }
+/* Добавляем в конец файла */
+.speed-slider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
