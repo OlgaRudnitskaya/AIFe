@@ -176,6 +176,9 @@ canvas {
 
 .speed-control.disabled {
     opacity: 0.5;
+}
+
+.speed-control.disabled .speed-slider {
     pointer-events: none;
 }
 
@@ -208,6 +211,11 @@ canvas {
     background: #007acc;
     color: white;
     border-color: #005a9e;
+}
+
+.frame-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .legend-content {
@@ -358,7 +366,8 @@ canvas {
 }
 
 #modal-canvas {
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
     max-height: 70vh;
     object-fit: contain;
     border: 2px solid #ddd;
@@ -369,18 +378,25 @@ canvas {
     flex-shrink: 0;
 }
 
-/* Cross-browser fixes */
+.modal-scrubber {
+    margin-top: 8px;
+}
+
+/* Cross-browser range slider fixes */
 input[type="range"] {
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
     background: transparent;
     cursor: pointer;
+    width: 100%;
 }
 
 input[type="range"]::-webkit-slider-track {
     background: #ddd;
     height: 4px;
     border-radius: 2px;
+    border: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -390,6 +406,7 @@ input[type="range"]::-webkit-slider-thumb {
     height: 12px;
     width: 12px;
     border-radius: 50%;
+    cursor: pointer;
 }
 
 input[type="range"]::-moz-range-track {
@@ -404,6 +421,7 @@ input[type="range"]::-moz-range-thumb {
     height: 12px;
     width: 12px;
     border-radius: 50%;
+    cursor: pointer;
     border: none;
 }
 
