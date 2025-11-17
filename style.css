@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -8,6 +9,8 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
     padding: 10px;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .container {
@@ -15,7 +18,7 @@ body {
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 15px;
-    height: 95vh;
+    height: 100%;
     width: 100%;
 }
 
@@ -27,14 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-}
-
-.animation-panel.expanded {
-    grid-column: 1 / -1;
-    grid-row: 1 / -1;
-    z-index: 10;
-    border-color: #007acc;
+    min-height: 0; /* Важно для правильного скролла */
 }
 
 .legend-panel {
@@ -45,6 +41,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: 0;
 }
 
 .panel-header {
@@ -52,21 +49,23 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .panel-header h3 {
     margin: 0;
     color: #333;
+    font-size: 14px;
 }
 
 .expand-btn {
-    padding: 5px 10px;
+    padding: 4px 8px;
     background: #6c757d;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     transition: background 0.3s;
 }
 
@@ -75,39 +74,50 @@ body {
 }
 
 .animation-container {
-    flex-grow: 1;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-height: 0;
+}
+
+.canvas-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 5px;
 }
 
 canvas {
-    width: 100%;
-    flex-grow: 1;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    background: #fafafa;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 
 .controls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .control-buttons {
     display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    gap: 4px;
     justify-content: center;
 }
 
-.play-btn, .pause-btn, .stop-btn, .cover-btn {
-    padding: 6px 12px;
+.play-btn, .pause-btn, .cover-btn {
+    padding: 6px 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     transition: all 0.3s;
 }
 
@@ -120,6 +130,11 @@ canvas {
     background: #218838;
 }
 
+.play-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
 .pause-btn {
     background: #ffc107;
     color: black;
@@ -129,13 +144,9 @@ canvas {
     background: #e0a800;
 }
 
-.stop-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.stop-btn:hover {
-    background: #c82333;
+.pause-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
 }
 
 .cover-btn {
@@ -150,13 +161,13 @@ canvas {
 .speed-control {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 11px;
     justify-content: center;
 }
 
 .speed-slider {
-    width: 80px;
+    width: 70px;
 }
 
 .frame-scrubber {
@@ -164,14 +175,15 @@ canvas {
     grid-template-columns: repeat(12, 1fr);
     gap: 2px;
     margin-top: 5px;
+    flex-shrink: 0;
 }
 
 .frame-btn {
-    height: 20px;
+    height: 18px;
     border: 1px solid #ddd;
     background: #f8f9fa;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,59 +200,58 @@ canvas {
     border-color: #005a9e;
 }
 
-.frame-btn.cover-frame {
-    background: #17a2b8;
-    color: white;
-    border-color: #138496;
-}
-
 .legend-content {
-    flex-grow: 1;
+    flex: 1;
     margin-bottom: 15px;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .legend-content h4 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: #333;
+    font-size: 14px;
 }
 
 .legend-content ul {
     list-style: none;
     padding-left: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .legend-content li {
-    margin-bottom: 8px;
-    padding: 5px;
+    margin-bottom: 6px;
+    padding: 4px;
     background: #f8f9fa;
     border-radius: 4px;
+    font-size: 12px;
 }
 
 .legend-info {
     background: #e7f3ff;
-    padding: 10px;
+    padding: 8px;
     border-radius: 4px;
     border-left: 4px solid #007acc;
+    font-size: 11px;
 }
 
 .legend-info p {
-    margin-bottom: 5px;
-    font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .global-controls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
-#global-play, #global-pause, #global-stop, #global-cover {
+#global-play, #global-pause, #global-cover {
     padding: 8px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     transition: background 0.3s;
 }
 
@@ -260,15 +271,6 @@ canvas {
 
 #global-pause:hover {
     background: #e0a800;
-}
-
-#global-stop {
-    background: #dc3545;
-    color: white;
-}
-
-#global-stop:hover {
-    background: #c82333;
 }
 
 #global-cover {
@@ -303,8 +305,8 @@ canvas {
     margin: 2% auto;
     padding: 20px;
     border-radius: 8px;
-    width: 95%;
-    height: 95%;
+    width: 90%;
+    height: 90%;
     display: flex;
     flex-direction: column;
 }
@@ -314,6 +316,7 @@ canvas {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    flex-shrink: 0;
 }
 
 .close-btn {
@@ -329,15 +332,29 @@ canvas {
     background: #545b62;
 }
 
+.modal-animation-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-height: 0;
+}
+
 #modal-canvas {
-    flex-grow: 1;
-    width: 100%;
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
     border: 2px solid #ddd;
     border-radius: 4px;
 }
 
 .modal-controls {
-    margin-top: 15px;
+    flex-shrink: 0;
+}
+
+/* Плавные переходы для canvas */
+canvas {
+    transition: opacity 0.3s ease;
 }
 
 /* Адаптивность */
@@ -345,7 +362,6 @@ canvas {
     .container {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr 1fr;
-        height: auto;
     }
 }
 
@@ -359,7 +375,15 @@ canvas {
         flex-direction: column;
     }
     
-    .play-btn, .pause-btn, .stop-btn, .cover-btn {
+    .play-btn, .pause-btn, .cover-btn {
         width: 100%;
+    }
+    
+    body {
+        overflow-y: auto;
+    }
+    
+    .container {
+        height: auto;
     }
 }
